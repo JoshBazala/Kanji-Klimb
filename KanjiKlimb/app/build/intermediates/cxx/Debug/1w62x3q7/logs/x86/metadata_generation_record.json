@@ -1,0 +1,72 @@
+[
+{
+  "message": "Start JSON generation. Platform version: 35 min SDK version: x86",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "rebuilding JSON C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86\\android_gradle_build.json due to:",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "- no fingerprint file, will remove stale configuration folder",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "@echo off\n\"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\\\\bin\\\\java\" ^\n  --enable-native-access ^\n  ALL-UNNAMED ^\n  --class-path ^\n  \"C:\\\\Users\\\\joshb\\\\.gradle\\\\caches\\\\modules-2\\\\files-2.1\\\\com.google.prefab\\\\cli\\\\2.1.0\\\\aa32fec809c44fa531f01dcfb739b5b3304d3050\\\\cli-2.1.0-all.jar\" ^\n  com.google.prefab.cli.AppKt ^\n  --build-system ^\n  cmake ^\n  --platform ^\n  android ^\n  --abi ^\n  x86 ^\n  --os-version ^\n  35 ^\n  --stl ^\n  c++_static ^\n  --ndk-version ^\n  28 ^\n  --output ^\n  \"C:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Temp\\\\agp-prefab-staging6034392159120294811\\\\staged-cli-output\" ^\n  \"C:\\\\Users\\\\joshb\\\\.gradle\\\\caches\\\\9.4.1\\\\transforms\\\\4695cd87027816cfff909f5465337390\\\\transformed\\\\games-activity-4.0.0\\\\prefab\"\n",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "Received process result: 0",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "removing stale contents from \u0027C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86\u0027",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "created folder \u0027C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86\u0027",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "executing cmake @echo off\n\"C:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\src\\\\main\\\\cpp\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d35\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-35\" ^\n  \"-DANDROID_ABI\u003dx86\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003dx86\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\28.2.13676358\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\28.2.13676358\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\28.2.13676358\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\build\\\\intermediates\\\\cxx\\\\Debug\\\\1w62x3q7\\\\obj\\\\x86\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\build\\\\intermediates\\\\cxx\\\\Debug\\\\1w62x3q7\\\\obj\\\\x86\" ^\n  \"-DCMAKE_BUILD_TYPE\u003dDebug\" ^\n  \"-DCMAKE_FIND_ROOT_PATH\u003dC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\.cxx\\\\Debug\\\\1w62x3q7\\\\prefab\\\\x86\\\\prefab\" ^\n  \"-BC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\.cxx\\\\Debug\\\\1w62x3q7\\\\x86\" ^\n  -GNinja\n",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "@echo off\n\"C:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\src\\\\main\\\\cpp\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d35\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-35\" ^\n  \"-DANDROID_ABI\u003dx86\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003dx86\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\28.2.13676358\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\28.2.13676358\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\28.2.13676358\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Users\\\\joshb\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\build\\\\intermediates\\\\cxx\\\\Debug\\\\1w62x3q7\\\\obj\\\\x86\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\build\\\\intermediates\\\\cxx\\\\Debug\\\\1w62x3q7\\\\obj\\\\x86\" ^\n  \"-DCMAKE_BUILD_TYPE\u003dDebug\" ^\n  \"-DCMAKE_FIND_ROOT_PATH\u003dC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\.cxx\\\\Debug\\\\1w62x3q7\\\\prefab\\\\x86\\\\prefab\" ^\n  \"-BC:\\\\Users\\\\joshb\\\\AndroidStudioProjects\\\\KanjiKlimb\\\\app\\\\.cxx\\\\Debug\\\\1w62x3q7\\\\x86\" ^\n  -GNinja\n",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "Received process result: 0",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "Exiting generation of C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86\\compile_commands.json.bin normally",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "done executing cmake",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "hard linked C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86\\compile_commands.json to C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\tools\\debug\\x86\\compile_commands.json",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+},
+{
+  "message": "JSON generation completed without problems",
+  "file": "C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp\\CMakeLists.txt",
+  "tag": "debug|x86"
+}
+]
