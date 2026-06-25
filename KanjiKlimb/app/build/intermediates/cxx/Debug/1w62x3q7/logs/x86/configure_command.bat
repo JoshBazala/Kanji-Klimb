@@ -1,19 +1,19 @@
 @echo off
-"C:\\Users\\joshb\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
-  "-HC:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\src\\main\\cpp" ^
+"C:\\Users\\ctsmi\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+  "-HC:\\Users\\ctsmi\\AndroidStudioProjects\\Kanji-Klimb\\KanjiKlimb\\app\\src\\main\\cpp" ^
   "-DCMAKE_SYSTEM_NAME=Android" ^
   "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
   "-DCMAKE_SYSTEM_VERSION=35" ^
   "-DANDROID_PLATFORM=android-35" ^
   "-DANDROID_ABI=x86" ^
   "-DCMAKE_ANDROID_ARCH_ABI=x86" ^
-  "-DANDROID_NDK=C:\\Users\\joshb\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358" ^
-  "-DCMAKE_ANDROID_NDK=C:\\Users\\joshb\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358" ^
-  "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\joshb\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358\\build\\cmake\\android.toolchain.cmake" ^
-  "-DCMAKE_MAKE_PROGRAM=C:\\Users\\joshb\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
-  "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\build\\intermediates\\cxx\\Debug\\1w62x3q7\\obj\\x86" ^
-  "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\build\\intermediates\\cxx\\Debug\\1w62x3q7\\obj\\x86" ^
+  "-DANDROID_NDK=C:\\Users\\ctsmi\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358" ^
+  "-DCMAKE_ANDROID_NDK=C:\\Users\\ctsmi\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358" ^
+  "-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\ctsmi\\AppData\\Local\\Android\\Sdk\\ndk\\28.2.13676358\\build\\cmake\\android.toolchain.cmake" ^
+  "-DCMAKE_MAKE_PROGRAM=C:\\Users\\ctsmi\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+  "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\ctsmi\\AndroidStudioProjects\\Kanji-Klimb\\KanjiKlimb\\app\\build\\intermediates\\cxx\\Debug\\1w62x3q7\\obj\\x86" ^
+  "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\ctsmi\\AndroidStudioProjects\\Kanji-Klimb\\KanjiKlimb\\app\\build\\intermediates\\cxx\\Debug\\1w62x3q7\\obj\\x86" ^
   "-DCMAKE_BUILD_TYPE=Debug" ^
-  "-DCMAKE_FIND_ROOT_PATH=C:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\prefab\\x86\\prefab" ^
-  "-BC:\\Users\\joshb\\AndroidStudioProjects\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86" ^
+  "-DCMAKE_FIND_ROOT_PATH=C:\\Users\\ctsmi\\AndroidStudioProjects\\Kanji-Klimb\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\prefab\\x86\\prefab" ^
+  "-BC:\\Users\\ctsmi\\AndroidStudioProjects\\Kanji-Klimb\\KanjiKlimb\\app\\.cxx\\Debug\\1w62x3q7\\x86" ^
   -GNinja
