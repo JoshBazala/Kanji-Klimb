@@ -11,6 +11,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import org.json.JSONArray
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -38,6 +39,7 @@ class MainActivity : Activity() {
     }
 }
 
+// This prototype stays in one custom View so drawing, touch input, and game state are easy to follow.
 private class RunnerPrototypeView(context: Context) : View(context) {
     private enum class GameState {
         Menu,
@@ -57,6 +59,21 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private enum class QuestionKind {
         Learning,
         Review
+    }
+
+    private enum class RunPhase {
+        Dodging,
+        Teaching,
+        Question
+    }
+
+    private enum class MasteryTier(
+        val label: String,
+        val shortLabel: String
+    ) {
+        Mastered("Mastered", "M"),
+        Learned("Learned", "L"),
+        Unlearned("Unlearned", "New")
     }
 
     private enum class LearningMode(
@@ -94,6 +111,11 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         val item: LearningItem,
         val sushiKind: SushiKind,
         val isCorrect: Boolean
+    )
+
+    private data class ChartSection(
+        val tier: MasteryTier,
+        val items: List<LearningItem>
     )
 
     private val preferences: SharedPreferences =
@@ -181,6 +203,12 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private val beltEdgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.rgb(28, 34, 39)
     }
+    private val tunnelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.rgb(22, 27, 31)
+    }
+    private val tunnelTrimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.rgb(230, 91, 105)
+    }
     private val beltStripePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.rgb(96, 106, 112)
         strokeWidth = 2f * resources.displayMetrics.density
@@ -264,6 +292,12 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         textSize = 10f * resources.displayMetrics.scaledDensity
         typeface = Typeface.create("sans-serif-rounded", Typeface.BOLD)
     }
+    private val sectionHeaderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        textAlign = Paint.Align.CENTER
+        textSize = 14f * resources.displayMetrics.scaledDensity
+        typeface = Typeface.create("sans-serif-rounded", Typeface.BOLD)
+    }
 
     private val laneCount = 4
     private val sushiKinds = SushiKind.values()
@@ -281,6 +315,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private val referenceButtonBounds = RectF()
     private val drawingBounds = RectF()
 
+    // Core learning libraries. Kana are small enough to define here; kanji is loaded from assets.
     private val hiraganaItems = buildKanaItems(
         symbols = listOf(
             "\u3042", "\u3044", "\u3046", "\u3048", "\u304a",
@@ -333,7 +368,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
             "wa", "wo", "n"
         )
     )
-    private val kanjiItems = listOf(
+    private val fallbackKanjiItems = listOf(
         LearningItem("\u65e5", "nichi", "sun / day"),
         LearningItem("\u4e00", "ichi", "one"),
         LearningItem("\u4eba", "hito", "person"),
@@ -375,12 +410,14 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         LearningItem("\u96e8", "ame", "rain"),
         LearningItem("\u624b", "te", "hand")
     )
+    private val kanjiItems = loadKanjiItemsFromAssets().ifEmpty { fallbackKanjiItems }
     private val menuStreams = mapOf(
         LearningMode.Hiragana to buildMenuStream(hiraganaItems.map { it.symbol }),
         LearningMode.Katakana to buildMenuStream(katakanaItems.map { it.symbol }),
         LearningMode.Kanji to buildMenuStream(kanjiItems.map { it.symbol })
     )
 
+    // Gameplay timing is intentionally separate for normal dodging and slower quiz moments.
     private val playerRadius = 14f * resources.displayMetrics.density
     private val plateRadius = 22f * resources.displayMetrics.density
     private val minSwipeDistance = 48f * resources.displayMetrics.density
@@ -392,11 +429,13 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private val menuBeltSpeed = 22f * resources.displayMetrics.density
 
     private var gameState = GameState.Menu
+    private var runPhase = RunPhase.Dodging
     private var selectedMode = LearningMode.Hiragana
     private var referenceMode = LearningMode.Hiragana
     private var currentQuestionKind = QuestionKind.Learning
     private var currentPrompt = ""
     private var correctItem: LearningItem? = null
+    private var pendingQuizChoices = emptyList<LearningItem>()
     private var currentLane = laneCount / 2
     private var touchStartX = 0f
     private var touchStartY = 0f
@@ -406,11 +445,13 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private var normalSpawnTimerSeconds = 0f
     private var questionTimerSeconds = 0f
     private var feedbackTimerSeconds = 0f
+    private var teachingTimerSeconds = 0f
     private var scoreSeconds = 0f
     private var correctThisRun = 0
     private var questionRound = 0
     private var feedbackText = ""
 
+    // Main frame loop for active gameplay. Menu scrolling uses a separate loop below.
     private val frameRunnable = object : Runnable {
         override fun run() {
             if (gameState != GameState.Running) return
@@ -549,11 +590,14 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         normalObstacles.clear()
         quizPlates.clear()
         currentLane = laneCount / 2
+        runPhase = RunPhase.Dodging
         currentPrompt = "Dodge sushi until the next question"
         correctItem = null
+        pendingQuizChoices = emptyList()
         normalSpawnTimerSeconds = normalSpawnIntervalSeconds
         questionTimerSeconds = 4f
         feedbackTimerSeconds = 0f
+        teachingTimerSeconds = 0f
         scoreSeconds = 0f
         correctThisRun = 0
         questionRound = preferences.getInt("${selectedMode.storageKey}_round", 0)
@@ -582,6 +626,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private fun showMainMenu() {
         normalObstacles.clear()
         quizPlates.clear()
+        runPhase = RunPhase.Dodging
         gameState = GameState.Menu
         removeCallbacks(frameRunnable)
         lastMenuFrameTimeNanos = System.nanoTime()
@@ -600,26 +645,38 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     private fun updateGame(deltaSeconds: Float) {
         scoreSeconds += deltaSeconds
 
-        if (quizPlates.isEmpty()) {
-            if (feedbackTimerSeconds > 0f) {
-                feedbackTimerSeconds -= deltaSeconds
-                currentPrompt = feedbackText
-            } else {
-                currentPrompt = "Dodge sushi: next question in ${questionTimerSeconds.toInt().coerceAtLeast(0)}"
-            }
-            updateNormalObstacles(deltaSeconds)
-            questionTimerSeconds -= deltaSeconds
-            if (questionTimerSeconds <= 0f) {
-                spawnQuestion()
-            }
-        } else {
-            quizPlates.forEach { plate ->
-                plate.y += questionPlateSpeed * deltaSeconds
+        // A run alternates between dodging sushi, learning a new answer, and choosing the right lane.
+        when (runPhase) {
+            RunPhase.Dodging -> {
+                if (feedbackTimerSeconds > 0f) {
+                    feedbackTimerSeconds -= deltaSeconds
+                    currentPrompt = feedbackText
+                } else {
+                    currentPrompt = "Dodge sushi: next question in ${questionTimerSeconds.toInt().coerceAtLeast(0)}"
+                }
+                updateNormalObstacles(deltaSeconds)
+                questionTimerSeconds -= deltaSeconds
+                if (questionTimerSeconds <= 0f) {
+                    spawnQuestion()
+                }
             }
 
-            val reachedPlayer = quizPlates.first().y >= playerY()
-            if (reachedPlayer) {
-                resolveCurrentQuestion()
+            RunPhase.Teaching -> {
+                teachingTimerSeconds -= deltaSeconds
+                if (teachingTimerSeconds <= 0f) {
+                    launchQuestionPlates(pendingQuizChoices)
+                }
+            }
+
+            RunPhase.Question -> {
+                quizPlates.forEach { plate ->
+                    plate.y += questionPlateSpeed * deltaSeconds
+                }
+
+                val reachedPlayer = quizPlates.isNotEmpty() && quizPlates.first().y >= playerY()
+                if (reachedPlayer) {
+                    resolveCurrentQuestion()
+                }
             }
         }
     }
@@ -662,12 +719,27 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         val correct = question.first
         currentQuestionKind = question.second
         val choices = buildChoices(items, correct)
-        val correctLane = choices.indexOf(correct)
 
         correctItem = correct
-        currentPrompt = promptFor(correct)
         feedbackText = ""
         normalObstacles.clear()
+        quizPlates.clear()
+        pendingQuizChoices = choices
+
+        if (currentQuestionKind == QuestionKind.Learning) {
+            runPhase = RunPhase.Teaching
+            teachingTimerSeconds = 2.8f
+            currentPrompt = teachingPromptFor(correct)
+        } else {
+            launchQuestionPlates(choices)
+        }
+    }
+
+    private fun launchQuestionPlates(choices: List<LearningItem>) {
+        val correct = correctItem ?: return
+        val correctLane = choices.indexOf(correct)
+        runPhase = RunPhase.Question
+        currentPrompt = promptFor(correct)
         quizPlates.clear()
         choices.forEachIndexed { lane, item ->
             quizPlates.add(
@@ -693,6 +765,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
             correctThisRun += 1
             feedbackText = "Correct! ${item.symbol} = ${answerFor(item)}"
             currentPrompt = feedbackText
+            runPhase = RunPhase.Dodging
             feedbackTimerSeconds = 2.2f
             questionTimerSeconds = questionIntervalSeconds
             normalSpawnTimerSeconds = normalSpawnIntervalSeconds * 0.5f
@@ -705,6 +778,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
             if (currentQuestionKind == QuestionKind.Review) {
                 gameState = GameState.GameOver
             } else {
+                runPhase = RunPhase.Dodging
                 questionTimerSeconds = 3.5f
                 normalSpawnTimerSeconds = normalSpawnIntervalSeconds * 0.5f
             }
@@ -713,7 +787,6 @@ private class RunnerPrototypeView(context: Context) : View(context) {
 
     private fun drawGame(canvas: Canvas, showPauseButton: Boolean) {
         drawConveyorLanes(canvas)
-        drawPrompt(canvas)
 
         normalObstacles.forEach { obstacle ->
             drawSushiPlate(canvas, laneCenterX(obstacle.lane), obstacle.y, obstacle.sushiKind)
@@ -724,6 +797,12 @@ private class RunnerPrototypeView(context: Context) : View(context) {
             drawChoiceText(canvas, plate)
         }
 
+        drawKitchenTunnels(canvas)
+        if (runPhase == RunPhase.Teaching) {
+            drawTeachingCard(canvas)
+        } else {
+            drawPrompt(canvas)
+        }
         canvas.drawCircle(laneCenterX(currentLane), playerY(), playerRadius, playerPaint)
         if (showPauseButton) {
             drawPauseButton(canvas)
@@ -732,7 +811,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
 
     private fun drawPrompt(canvas: Canvas) {
         val density = resources.displayMetrics.density
-        val isQuestionActive = quizPlates.isNotEmpty() || feedbackTimerSeconds > 0f
+        val isQuestionActive = runPhase != RunPhase.Dodging || feedbackTimerSeconds > 0f
         val promptBoxPaint = when {
             !isQuestionActive -> labelBoxPaint
             currentQuestionKind == QuestionKind.Learning -> learningBoxPaint
@@ -740,6 +819,7 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         }
         val promptLabel = when {
             !isQuestionActive -> "${selectedMode.title} run"
+            runPhase == RunPhase.Teaching -> "BLUE: learn this answer"
             currentQuestionKind == QuestionKind.Learning -> "BLUE: new item - mistakes are safe"
             else -> "RED: review - mistakes end the run"
         }
@@ -758,6 +838,38 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         canvas.drawRoundRect(drawingBounds, 15f * density, 15f * density, labelBoxPaint)
         val scoreY = drawingBounds.centerY() - (scoreTextPaint.descent() + scoreTextPaint.ascent()) / 2f
         canvas.drawText("Correct: $correctThisRun", drawingBounds.centerX(), scoreY, scoreTextPaint)
+    }
+
+    private fun drawTeachingCard(canvas: Canvas) {
+        val density = resources.displayMetrics.density
+        val item = correctItem ?: return
+        val cardWidth = width * 0.82f
+        val cardHeight = 154f * density
+        val top = height * 0.34f
+        drawingBounds.set(
+            width / 2f - cardWidth / 2f,
+            top,
+            width / 2f + cardWidth / 2f,
+            top + cardHeight
+        )
+
+        canvas.drawRoundRect(drawingBounds, 24f * density, 24f * density, learningBoxPaint)
+        canvas.drawText("NEW ${selectedMode.title.uppercase()}", drawingBounds.centerX(), top + 30f * density, promptLabelPaint)
+
+        val symbolY = top + 78f * density
+        drawingBounds.set(
+            width / 2f - 44f * density,
+            symbolY - 42f * density,
+            width / 2f + 44f * density,
+            symbolY + 10f * density
+        )
+        canvas.drawRoundRect(drawingBounds, 16f * density, 16f * density, choiceLabelPaint)
+        choiceTextPaint.textSize = 40f * resources.displayMetrics.scaledDensity
+        canvas.drawText(item.symbol, width / 2f, symbolY, choiceTextPaint)
+        choiceTextPaint.textSize = 23f * resources.displayMetrics.scaledDensity
+
+        canvas.drawText(answerFor(item), width / 2f, top + 112f * density, promptPaint)
+        canvas.drawText("Get ready to choose this lane.", width / 2f, top + 136f * density, promptLabelPaint)
     }
 
     private fun drawChoiceText(canvas: Canvas, plate: QuizPlate) {
@@ -936,39 +1048,65 @@ private class RunnerPrototypeView(context: Context) : View(context) {
     }
 
     private fun drawReferenceScreen(canvas: Canvas) {
-        val items = itemsForMode(referenceMode)
+        // Charts prioritize what the player knows, then show not-yet-learned items below.
+        val visibleLimit = if (referenceMode == LearningMode.Kanji) 140 else Int.MAX_VALUE
+        val sections = chartSections(referenceMode, visibleLimit)
         val density = resources.displayMetrics.density
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), menuBackgroundPaint)
         drawBackButton(canvas)
         canvas.drawText("${referenceMode.title} Chart", width / 2f, 72f * density, titlePaint)
+        canvas.drawText(tierSummary(referenceMode), width / 2f, 98f * density, smallTextPaint)
 
-        val columns = if (items.size > 40) 7 else 5
-        val startY = 116f * density
+        val visibleCount = sections.sumOf { it.items.size }
+        val columns = if (visibleCount > 40) 7 else 5
+        val startY = 126f * density
         val horizontalPadding = 16f * density
         val cellWidth = (width - horizontalPadding * 2f) / columns
-        val rows = ((items.size + columns - 1) / columns).coerceAtLeast(1)
-        val availableHeight = height - startY - 18f * density
-        val cellHeight = (availableHeight / rows).coerceAtMost(52f * density)
-
-        items.forEachIndexed { index, item ->
-            val column = index % columns
-            val row = index / columns
-            val centerX = horizontalPadding + cellWidth * column + cellWidth / 2f
-            val centerY = startY + cellHeight * row + cellHeight / 2f
-            canvas.drawCircle(centerX, centerY - 4f * density, (cellHeight * 0.32f).coerceAtMost(15f * density), platePaint)
-            canvas.drawText(
-                item.symbol,
-                centerX,
-                centerY - 7f * density - (referenceCharacterPaint.descent() + referenceCharacterPaint.ascent()) / 2f,
-                referenceCharacterPaint
-            )
-            canvas.drawText(
-                answerFor(item),
-                centerX,
-                centerY + 14f * density - (referenceReadingPaint.descent() + referenceReadingPaint.ascent()) / 2f,
-                referenceReadingPaint
-            )
+        val gridRows = sections.sumOf { section ->
+            ((section.items.size + columns - 1) / columns).coerceAtLeast(1)
         }
+        val availableHeight = height - startY - 18f * density
+        val headerHeight = 25f * density
+        val cellHeight = ((availableHeight - headerHeight * sections.size) / gridRows.coerceAtLeast(1)).coerceAtMost(50f * density)
+        var sectionTop = startY
+
+        sections.forEach { section ->
+            drawChartSectionHeader(canvas, section.tier, section.items.size, sectionTop)
+            sectionTop += headerHeight
+
+            section.items.forEachIndexed { index, item ->
+                val column = index % columns
+                val row = index / columns
+                val centerX = horizontalPadding + cellWidth * column + cellWidth / 2f
+                val centerY = sectionTop + cellHeight * row + cellHeight / 2f
+                canvas.drawCircle(centerX, centerY - 4f * density, (cellHeight * 0.32f).coerceAtMost(15f * density), platePaint)
+                canvas.drawText(
+                    item.symbol,
+                    centerX,
+                    centerY - 7f * density - (referenceCharacterPaint.descent() + referenceCharacterPaint.ascent()) / 2f,
+                    referenceCharacterPaint
+                )
+                canvas.drawText(
+                    answerFor(item),
+                    centerX,
+                    centerY + 14f * density - (referenceReadingPaint.descent() + referenceReadingPaint.ascent()) / 2f,
+                    referenceReadingPaint
+                )
+            }
+
+            val sectionRows = ((section.items.size + columns - 1) / columns).coerceAtLeast(1)
+            sectionTop += cellHeight * sectionRows
+        }
+    }
+
+    private fun drawChartSectionHeader(canvas: Canvas, tier: MasteryTier, count: Int, top: Float) {
+        val density = resources.displayMetrics.density
+        val left = 18f * density
+        val right = width - 18f * density
+        drawingBounds.set(left, top + 2f * density, right, top + 22f * density)
+        canvas.drawRoundRect(drawingBounds, 10f * density, 10f * density, labelBoxPaint)
+        val textY = drawingBounds.centerY() - (sectionHeaderPaint.descent() + sectionHeaderPaint.ascent()) / 2f
+        canvas.drawText("${tier.label} ($count)", drawingBounds.centerX(), textY, sectionHeaderPaint)
     }
 
     private fun drawConveyorLanes(canvas: Canvas) {
@@ -998,6 +1136,30 @@ private class RunnerPrototypeView(context: Context) : View(context) {
                 canvas.drawCircle(right - edgeInset * 1.5f, rollerY, rollerRadius, beltStripePaint)
                 rollerY += rollerSpacing
             }
+        }
+    }
+
+    private fun drawKitchenTunnels(canvas: Canvas) {
+        val density = resources.displayMetrics.density
+        val laneWidth = width / laneCount.toFloat()
+        val conveyorTop = 132f * density
+        val tunnelTop = conveyorTop - 34f * density
+        val tunnelBottom = conveyorTop + 24f * density
+        val horizontalInset = 8f * density
+
+        for (lane in 0 until laneCount) {
+            val left = laneWidth * lane + horizontalInset
+            val right = laneWidth * (lane + 1) - horizontalInset
+            drawingBounds.set(left, tunnelTop, right, tunnelBottom)
+            canvas.drawRoundRect(drawingBounds, 18f * density, 18f * density, tunnelTrimPaint)
+
+            drawingBounds.set(
+                left + 5f * density,
+                tunnelTop + 6f * density,
+                right - 5f * density,
+                tunnelBottom + 12f * density
+            )
+            canvas.drawRoundRect(drawingBounds, 14f * density, 14f * density, tunnelPaint)
         }
     }
 
@@ -1146,10 +1308,55 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         saveProgress(item, itemProgress)
     }
 
+    // Lightweight local mastery model: 0 correct is new, 1-4 correct is learned, 5+ is mastered.
+    private fun tierFor(mode: LearningMode, item: LearningItem): MasteryTier {
+        val correct = progressFor(mode, item).correct
+        return when {
+            correct >= 5 -> MasteryTier.Mastered
+            correct >= 1 -> MasteryTier.Learned
+            else -> MasteryTier.Unlearned
+        }
+    }
+
+    private fun sortedReferenceItems(mode: LearningMode): List<LearningItem> {
+        return itemsForMode(mode).sortedWith(
+            compareBy<LearningItem> { tierSortOrder(tierFor(mode, it)) }
+                .thenBy { progressFor(mode, it).dueRound }
+        )
+    }
+
+    private fun chartSections(mode: LearningMode, visibleLimit: Int): List<ChartSection> {
+        var remaining = visibleLimit
+        return listOf(MasteryTier.Mastered, MasteryTier.Learned, MasteryTier.Unlearned).mapNotNull { tier ->
+            if (remaining <= 0) return@mapNotNull null
+            val tierItems = sortedReferenceItems(mode)
+                .filter { tierFor(mode, it) == tier }
+                .take(remaining)
+            remaining -= tierItems.size
+            if (tierItems.isEmpty()) null else ChartSection(tier, tierItems)
+        }
+    }
+
+    private fun tierSortOrder(tier: MasteryTier): Int {
+        return when (tier) {
+            MasteryTier.Mastered -> 0
+            MasteryTier.Learned -> 1
+            MasteryTier.Unlearned -> 2
+        }
+    }
+
+    private fun tierSummary(mode: LearningMode): String {
+        val items = itemsForMode(mode)
+        val mastered = items.count { tierFor(mode, it) == MasteryTier.Mastered }
+        val learned = items.count { tierFor(mode, it) == MasteryTier.Learned }
+        val unlearned = items.size - mastered - learned
+        return "Mastered: $mastered   Learned: $learned   Unlearned: $unlearned"
+    }
+
     private fun progressSummary(mode: LearningMode): String {
         val items = itemsForMode(mode)
-        val learned = items.count { progressFor(mode, it).correct > 0 }
-        val mastered = items.count { progressFor(mode, it).level >= 4 }
+        val learned = items.count { tierFor(mode, it) == MasteryTier.Learned }
+        val mastered = items.count { tierFor(mode, it) == MasteryTier.Mastered }
         return "$learned learned  |  $mastered mastered"
     }
 
@@ -1215,6 +1422,14 @@ private class RunnerPrototypeView(context: Context) : View(context) {
         }
     }
 
+    private fun teachingPromptFor(item: LearningItem): String {
+        return when (selectedMode) {
+            LearningMode.Hiragana,
+            LearningMode.Katakana -> "New: ${item.symbol} = ${item.reading}"
+            LearningMode.Kanji -> "New: ${item.symbol} = ${item.meaning}"
+        }
+    }
+
     private fun answerFor(item: LearningItem): String {
         return when (referenceMode) {
             LearningMode.Hiragana,
@@ -1228,6 +1443,24 @@ private class RunnerPrototypeView(context: Context) : View(context) {
             LearningMode.Hiragana -> hiraganaItems
             LearningMode.Katakana -> katakanaItems
             LearningMode.Kanji -> kanjiItems
+        }
+    }
+
+    private fun loadKanjiItemsFromAssets(): List<LearningItem> {
+        // KANJIDIC2-derived data lives in assets so the library can grow without changing Kotlin code.
+        return try {
+            val jsonText = context.assets.open("kanji.json").bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val array = JSONArray(jsonText)
+            List(array.length()) { index ->
+                val item = array.getJSONObject(index)
+                LearningItem(
+                    symbol = item.getString("symbol"),
+                    reading = item.optString("reading"),
+                    meaning = item.optString("meaning")
+                )
+            }.filter { it.symbol.isNotBlank() && it.meaning.isNotBlank() }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
